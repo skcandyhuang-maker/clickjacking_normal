@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clickjacking 弱點測試工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #ecf0f1;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #2d2d2d;
+            border: 2px solid #e74c3c;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        h1 { color: #e74c3c; margin-top: 0; }
+        
+        /* 輸入控制區 */
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 60%;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background: #333;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover { background-color: #c0392b; }
+
+        /* 模擬攻擊區域 */
+        .attack-area {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            border: 4px dashed #f1c40f; /* 黃色警戒框 */
+            margin-top: 20px;
+            background: #fff; /* iframe 背景設為白，方便辨識 */
+        }
+
+        /* 關鍵修正：iframe 設定 - 禁止腳本以防跳轉 */
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* 覆蓋層 (模擬駭客的透明按鈕) */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(231, 76, 60, 0.1); /* 稍微紅紅的，讓您知道這是覆蓋層 */
+            z-index: 10;
+            pointer-events: none; /* 為了測試方便，我先關掉點擊攔截，讓您可以操作 iframe */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: rgba(255, 0, 0, 0.5);
+            font-weight: bold;
+        }
+
+        .status-msg {
+            margin-top: 15px;
+            color: #bdc3c7;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>⚠️ 警告：這是一個模擬的惡意網站</h1>
+        <p>駭客正試圖將您的網站嵌入到這裡進行「點擊劫持 (Clickjacking)」攻擊。<br>
+            請觀察下方的黃色框框。</p>
+
+        <div class="controls">
+            <input type="text" id="urlInput" placeholder="請輸入網址 (例如: https://example.com)" value="https://example.com">
+            <button onclick="loadSite()">載入測試</button>
+        </div>
+
+        <div class="attack-area">
+            <iframe id="targetFrame" sandbox="allow-forms allow-same-origin"></iframe>
+            
+            <div class="overlay">
+                (這是駭客的透明覆蓋層)
+            </div>
+        </div>
+
+        <div class="status-msg">
+            <p>🔴 <strong>如果看得到網站內容：</strong> 代表該網站 <span style="color:#e74c3c">可能</span> 有 Clickjacking 風險。</p>
+            <p>🟢 <strong>如果顯示「拒絕連線」或空白：</strong> 代表該網站 <span style="color:#2ecc71">已設定安全防護 (X-Frame-Options / CSP)</span>。</p>
+        </div>
+    </div>
+
+    <script>
+        function loadSite() {
+            var url = document.getElementById('urlInput').value;
+            var iframe = document.getElementById('targetFrame');
+            
+            // 簡單的網址檢查，如果沒打 https:// 自動補上
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+                document.getElementById('urlInput').value = url;
+            }
+            
+            iframe.src = url;
+        }
+    </script>
+</body>
+</html>
